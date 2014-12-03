@@ -31,12 +31,12 @@ if you want to analysis my code, some following knowledge are required :
 Running
 -------
 
-$ cd /path/to/aws_vpc_viewer/
-$ /bin/bash painter.sh # draws the network topology of your vpc on AWS into a png photo.
-$ /bin/bash reporter.sh # formats the information of ec2, s3, elb, rds to Excel-Formatted reports.
+$ cd /path/to/aws_vpc_viewer/  
+$ /bin/bash painter.sh # draws the network topology of your vpc on AWS into a png photo.  
+$ /bin/bash reporter.sh # formats the information of ec2, s3, elb, rds to Excel-Formatted reports.  
 
 
-'''
-./AWS_VPC.png is the network topology of your vpc on AWS
+```
+./AWS_VPC.png is the network topology of your vpc on AWS  
 ./*.xlsx are the Excel-Formatted reports
-'''
+```
