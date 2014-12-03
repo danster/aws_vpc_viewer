@@ -1,0 +1,32 @@
+/*
+/*/
+
+
+##################
+# unused files   #
+##################
+*~
+*.pyc
+.project
+.*project
+.classpath
+alias.sh
+
+##################
+# tracked folders#
+##################
+!/icons/
+/icons/*.svg
+
+#############################
+# tracked files in root dir #
+#############################
+!.gitignore
+!README.md
+!reporter.sh
+!painter.sh
+!json2xlsx.py
+!json2dot.py
+
+
+
