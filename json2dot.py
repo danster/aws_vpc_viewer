@@ -204,9 +204,9 @@ def getDot():
         aws.add_edge(pydot.Edge(region_flags[i], region_flags[i+1],
                 dir='none', color='transparent'))
                                                  
-#     print 'writing the dot data to a file ... '
-#     with open(BASE_DIR+'/AWS.dot','w') as _file:
-#         _file.write(aws.to_string())
+    print 'writing the dot data to a file ... '
+    with open(BASE_DIR+'/AWS.dot','w') as _file:
+        _file.write(aws.to_string())
         
     print 'drawing a png refer to the dot data ... '
     aws.write_png("AWS_VPC.png")
