@@ -104,14 +104,13 @@ def getDot():
     global REGIONS, instances, subnets, vpcs
     print 'generating dot data ... '
     # color: surround color, bgcolor: background color, fontcolor
-    aws = pydot.Dot('AWS', graph_type='digraph', label='',
-                    color='#FFFFFF', style='filled', clusterrank='local', 
+    aws = pydot.Dot('AWS', graph_type='digraph', label='AWS',
+                    color='black', style='rounded', clusterrank='local', 
                     fontsize='12', sep ='+2,2',compound='true', rankdir='TB',
-                    remincross='false', area='100', K='10', model='circuit')
+                    remincross='false', area='100',  model='circuit')
     
-    aws_flage = pydot.Node('AWS', label='', shape='box', color='transparent',
-                  labelloc='b', overlap='false', fontsize='10',
-                  image=ICONS_DIR+os.sep+"Cloud AWS.png")
+    aws_flage = pydot.Node('AWS', label='', shape='none',
+                           image=ICONS_DIR+os.sep+"Cloud AWS.png")
     aws.add_node(aws_flage)
 
     for i in instances :               
@@ -121,7 +120,7 @@ def getDot():
             label += 'Private IP '+i['PrivateIpAddress']+'\n'
         if 'PublicIpAddress' in i :
             label += 'Public IP '+i['PublicIpAddress']+'\n'
-        instance = pydot.Node(instance_id, label=label, shape='box',
+        instance = pydot.Node(instance_id, label=label, shape='none',
                  labelloc='b', overlap='false', fontsize='10',
                  image=ICONS_DIR+os.sep+"EC2 Instance.png")
         aws.add_node(instance)
@@ -135,12 +134,12 @@ def getDot():
     for r in REGIONS :
         _region = string.replace(r, '-', '_')
         label='Region '+_region
-        region = pydot.Subgraph('cluster_'+_region, graph_type='digraph', rankdir='TB',
-                        label='', labelloc='b', color='#D8D8D8', style='filled')
+        region = pydot.Subgraph('cluster_'+_region, graph_type='digraph',
+                        label='', labelloc='b',)
         aws.add_subgraph(region)
         
-        region_flage = pydot.Node(label, label=label, shape='box', color='transparent',
-                  labelloc='b', overlap='false', fontsize='10',
+        region_flage = pydot.Node(label, label=label, shape='none',
+                  labelloc='b', overlap='false', fontsize='20',
                   image=ICONS_DIR+os.sep+"Clound Internet.png")
         region.add_node(region_flage)
         region_flags.append(region_flage)
@@ -150,7 +149,7 @@ def getDot():
             if z['Region'] != r : continue
             zone_name = string.replace(z['ZoneName'], '-', '_')
             zone = pydot.Subgraph('cluster_'+zone_name, graph_type='digraph', 
-                    label='Zone '+zone_name, color='blue', style='dotted')
+                    label='Zone '+zone_name)
             region.add_subgraph(zone) 
             
             [ region.add_node(i['Node']) for i in isolated_instances              
@@ -163,13 +162,13 @@ def getDot():
             vpc_id = string.replace(v['VpcId'], '-', '_')
             label = 'Default ' if v['IsDefault'] is True else ''
             label += vpc_id +'\n'+ v['CidrBlock']
-            vpc = pydot.Subgraph('cluster_'+vpc_id, graph_type='digraph', rankdir='TB',
-                    label='', color='#C0C0C0', style='filled')
+            vpc = pydot.Subgraph('cluster_'+vpc_id, graph_type='digraph',
+                                label='')
             region.add_subgraph(vpc) 
             
             vpc_flage = pydot.Node(label, label=label, shape='box', color='transparent',
-                  labelloc='b', overlap='false', fontsize='10',
-                  image=ICONS_DIR+os.sep+"Cloud VPC.png")
+                  labelloc='b', overlap='false', fontsize='18')
+                  # image=ICONS_DIR+os.sep+"Cloud VPC.png"
             vpc.add_node(vpc_flage)
             vpc_flags.append(vpc_flage)
             
@@ -178,14 +177,12 @@ def getDot():
             for s in subnets :
                 if s['VpcId'] != v['VpcId'] : continue
                 subnet_id = string.replace(s['SubnetId'], '-', '_')
-                label = subnet_id+'\n'+s['CidrBlock']+'\n'
-                subnet = pydot.Subgraph('cluster_'+subnet_id, graph_type='digraph', 
-                                label='', color='#909090', style='bold')
+                
+                subnet = pydot.Subgraph('cluster_'+subnet_id, graph_type='digraph')
                 vpc.add_subgraph(subnet)
                 
-                subnet_flag = pydot.Node(label, label=label, shape='box', color='transparent',
-                    labelloc='b', overlap='false', fontsize='10',
-                    image=ICONS_DIR+os.sep+"VPC VPN Gateway.png")
+                subnet_flag = pydot.Node(subnet_id+'\n'+s['CidrBlock']+'\n', shape='plaintext',
+                    labelloc='b', overlap='false', fontsize='20')
                 subnet.add_node(subnet_flag)
                 subnet_flags.append(subnet_flag)
                  
@@ -205,7 +202,7 @@ def getDot():
                 dir='none', color='transparent'))
                                                  
     print 'writing the dot data to a file ... '
-    with open(BASE_DIR+'/AWS.dot','w') as _file:
+    with open(BASE_DIR+'/AWS_VPC.dot','w') as _file:
         _file.write(aws.to_string())
         
     print 'drawing a png refer to the dot data ... '

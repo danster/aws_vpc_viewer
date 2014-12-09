@@ -3,7 +3,7 @@
 
 #
 #   Exporting resource lists to Excel
-#   Author: Channer
+#   Author: Huangmaofeng
 #   Date: 2014-10-28
 
 import json
