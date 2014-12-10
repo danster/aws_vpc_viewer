@@ -106,7 +106,7 @@ def getDot():
     # color: surround color, bgcolor: background color, fontcolor
     aws = pydot.Dot('AWS', graph_type='digraph', label='AWS',
                     color='black', style='rounded', clusterrank='local', 
-                    fontsize='12', sep ='+2,2',compound='true', rankdir='TB',
+                    fontsize='12', ranksep ='2 equality',compound='true', rankdir='TB',
                     remincross='false', area='100',  model='circuit')
     
     aws_flage = pydot.Node('AWS', label='', shape='none',
@@ -160,8 +160,8 @@ def getDot():
         for v in vpcs :
             if v['Region'] != r : continue
             vpc_id = string.replace(v['VpcId'], '-', '_')
-            label = 'Default ' if v['IsDefault'] is True else ''
-            label += vpc_id +'\n'+ v['CidrBlock']
+            label = 'Default VPC' if v['IsDefault'] is True else 'VPC'
+            label += '\n'+ v['CidrBlock']
             vpc = pydot.Subgraph('cluster_'+vpc_id, graph_type='digraph',
                                 label='')
             region.add_subgraph(vpc) 
