@@ -20,8 +20,9 @@ BASE_DIR = os.path.split(os.path.realpath(__file__))[0]
 VPC_DIR = os.path.join(BASE_DIR, "vpc")
 JSON_DIR = os.path.join(BASE_DIR, "json")
 ICONS_DIR = os.path.join(BASE_DIR, "icons")
-REGIONS = ['ap-southeast-1','ap-northeast-1']
+GRAPH_DIR = os.path.join(BASE_DIR, "graph")
 
+regions = ['ap-southeast-1','ap-northeast-1']
 instances = list()
 subnets = list()
 vpcs = list()
@@ -41,7 +42,7 @@ def fileCheck(_file):
 
 def getInstances():
     print 'generating instance list data ... '
-    for region in REGIONS :
+    for region in regions :
         _jsons = glob.glob(VPC_DIR+os.sep+"instances*"+region+"*")
         for js in _jsons:
             _file = fileCheck(js)
@@ -61,7 +62,7 @@ def getInstances():
     
 def getNetworks():
     print 'generating subnets, vpcs and zones data ... '
-    for region in REGIONS :
+    for region in regions :
         _jsons = glob.glob(VPC_DIR+os.sep+"subnets*"+region+"*")
         for js in _jsons:
             _file = fileCheck(js)
@@ -99,9 +100,9 @@ def getNetworks():
     print 'dumping is end. '
     
             
-def getDot():
+def getVpcMap():
     
-    global REGIONS, instances, subnets, vpcs
+    global regions, instances, subnets, vpcs
     print 'generating dot data ... '
     # color: surround color, bgcolor: background color, fontcolor
     aws = pydot.Dot('AWS', graph_type='digraph', label='AWS',
@@ -131,7 +132,7 @@ def getDot():
 
     region_flags = list()
     
-    for r in REGIONS :
+    for r in regions :
         _region = string.replace(r, '-', '_')
         label='Region '+_region
         region = pydot.Subgraph('cluster_'+_region, graph_type='digraph',
@@ -168,7 +169,6 @@ def getDot():
             
             vpc_flage = pydot.Node(label, label=label, shape='box', color='transparent',
                   labelloc='b', overlap='false', fontsize='18')
-                  # image=ICONS_DIR+os.sep+"Cloud VPC.png"
             vpc.add_node(vpc_flage)
             vpc_flags.append(vpc_flage)
             
@@ -206,12 +206,115 @@ def getDot():
         _file.write(aws.to_string())
         
     print 'drawing a png refer to the dot data ... '
-    aws.write_png("AWS_VPC.png")
+    aws.write_png("graph/VpcTopologyMap.png")
     print 'drawing is completed. '
     
 
+def getInstancesTree():
+    
+    global regions, instances, subnets, vpcs
+    
+    DotAttrs = dict(color='black', fontsize='12', 
+                    overlap='false', sep='+1,1', 
+                    rankdir='TB', ranksep='3 equality', 
+                    clusterrank='local', compound='true')
+    
+    NodeAttrs = dict(shape='none', width='2', height='2', labelloc='b',
+                     fontsize='18', imagescale='true', 
+                     style='rounded')
+    
+    EdgeAttrs = dict(dir='none', color='black')
+    
+    print 'generating dot data ... '
+    aws = pydot.Dot('AWS', graph_type='digraph', label='', **DotAttrs)
+    root = pydot.Node('AWS', label='', image=ICONS_DIR+os.sep+"Cloud AWS.png", **NodeAttrs)
+    aws.add_node(root)
+
+    for i in instances :               
+        instance_id = string.replace(i['InstanceId'], '-', '_')
+        label =  'EC2  '+instance_id+'\n'
+        if 'PrivateIpAddress' in i :
+            label += 'Private IP '+i['PrivateIpAddress']+'\n'
+        if 'PublicIpAddress' in i :
+            label += 'Public IP '+i['PublicIpAddress']+'\n'
+           
+        _Attrs = copy.deepcopy(NodeAttrs)
+        _Attrs.update(dict(height='3.2',))    
+        instance = pydot.Node(instance_id, label=label,image=ICONS_DIR+os.sep+"EC2 Instance.png", 
+                              **_Attrs)
+        i['Node'] = instance
+        aws.add_node(instance)
+    
+    isolated_instances = [it for it in instances if 'VpcId' not in it ]
+    instances = [it for it in instances if 'VpcId' in it ]
+
+    for r in regions :
+        _region = string.replace(r, '-', '_')
+        label='Region \n'+_region
+        _Attrs = copy.deepcopy(NodeAttrs)
+        _Attrs.update(dict(height='2.2',)) 
+        region = pydot.Node(label, label=label, image=ICONS_DIR+os.sep+"Clound Internet.png", 
+                            **_Attrs)
+        
+        aws.add_node(region)
+        aws.add_edge(pydot.Edge(root, region, **EdgeAttrs))
+        
+        for z in zones :
+            if z['Region'] != r : continue
+            zone_name = string.replace(z['ZoneName'], '-', '_')
+            label='AvailablityZone \n'+zone_name
+            
+            _Attrs = copy.deepcopy(NodeAttrs)
+            _Attrs.update(dict(height='1', shape='box', labelloc='c'))
+            zone = pydot.Node(label, label=label, **_Attrs)
+
+            aws.add_node(zone)
+            aws.add_edge(pydot.Edge(region, zone, **EdgeAttrs))
+            
+            for i in isolated_instances :
+                if i['Placement']['AvailabilityZone'] == z['ZoneName'] :
+                    aws.add_edge(pydot.Edge(zone, i['Node'], dir='none', color='black'))
+                    
+        
+        for v in vpcs :
+            if v['Region'] != r : continue
+            
+            vpc_id = string.replace(v['VpcId'], '-', '_')
+            label = 'Default ' if v['IsDefault'] is True else ''
+            label += ' '+vpc_id+'\n'+ v['CidrBlock']
+            _Attrs = copy.deepcopy(NodeAttrs)
+            _Attrs.update(dict(height='2.5',)) 
+            vpc = pydot.Node(label, label=label, image=ICONS_DIR+os.sep+"Cloud VPC.png", 
+                             **NodeAttrs)
+            
+            aws.add_node(vpc)
+            aws.add_edge(pydot.Edge(region, vpc, **EdgeAttrs))
+ 
+            for s in subnets :
+                if s['VpcId'] != v['VpcId'] : continue
+                subnet_id = string.replace(s['SubnetId'], '-', '_')
+                label = subnet_id+'\n'+s['CidrBlock']+'\n'
+                
+                _Attrs = copy.deepcopy(NodeAttrs)
+                _Attrs.update(dict(height='1', shape='box', labelloc='c'))
+                subnet = pydot.Node(label, label=label, **_Attrs)
+                aws.add_node(subnet)
+                aws.add_edge(pydot.Edge(vpc, subnet, **EdgeAttrs))
+                 
+                for i in instances :
+                    if i['SubnetId'] != s['SubnetId'] : continue
+                    aws.add_edge(pydot.Edge(subnet, i['Node'], **EdgeAttrs))
+
+        
+    print 'drawing a png refer to the dot data ... '
+    aws.write_png("graph/InstancesTree.png")
+    print 'drawing is completed. '
+    
+    
+    
 if __name__ == '__main__':
     getInstances()
     getNetworks()
-    getDot()
+    getVpcMap()
+    getInstancesTree()
 
