@@ -5,17 +5,18 @@
 #   Author: Huangmaofeng
 #   Date: 2014-11-27
 
-from collections import Counter
+
 import copy
 import glob
 import json
 import os
 import pydot
-import sys
+import sys, getopt
 import string
 
 
 VERSION = '1.0'
+OUTFILE = ''
 BASE_DIR = os.path.split(os.path.realpath(__file__))[0]
 VPC_DIR = os.path.join(BASE_DIR, "vpc")
 JSON_DIR = os.path.join(BASE_DIR, "json")
@@ -27,6 +28,8 @@ instances = list()
 subnets = list()
 vpcs = list()
 zones = list()
+
+aws = ''
 
 def fileCheck(_file):
     try:
@@ -98,11 +101,10 @@ def getNetworks():
     with open(JSON_DIR+os.sep+'zones','w') as _file:
         json.dump(zones, _file, indent = 4, separators=(',', ': '))
     print 'dumping is end. '
-    
-            
+                
 def getVpcMap():
     
-    global regions, instances, subnets, vpcs
+    global regions, instances, subnets, vpcs, aws
     print 'generating dot data ... '
     # color: surround color, bgcolor: background color, fontcolor
     aws = pydot.Dot('AWS', graph_type='digraph', label='AWS',
@@ -200,15 +202,7 @@ def getVpcMap():
     for i in range(0, len(region_flags)-1):
         aws.add_edge(pydot.Edge(region_flags[i], region_flags[i+1],
                 dir='none', color='transparent'))
-                                                 
-    print 'writing the dot data to a file ... '
-    with open(BASE_DIR+'/AWS_VPC.dot','w') as _file:
-        _file.write(aws.to_string())
-        
-    print 'drawing a png refer to the dot data ... '
-    aws.write_png("graph/VpcTopologyMap.png")
-    print 'drawing is completed. '
-    
+ 
 
 def getInstancesTree():
     
@@ -305,16 +299,78 @@ def getInstancesTree():
                     if i['SubnetId'] != s['SubnetId'] : continue
                     aws.add_edge(pydot.Edge(subnet, i['Node'], **EdgeAttrs))
 
-        
-    print 'drawing a png refer to the dot data ... '
-    aws.write_png("graph/InstancesTree.png")
-    print 'drawing is completed. '
+
+def funcFork():
+    
+    global OUTFILE, AWS_DOT
+    opts = list()
+    
+    try: 
+        opts, _args = getopt.getopt(sys.argv[1:], 'hi:o:v',['version','outfile='])
+    except getopt.GetoptError:  
+        usage()
+    
+    isMap = True
     
     
+    for op, value in opts :
+        if op in ('-h', '--help'):
+            usage()
+            sys.exit()
+        elif op in ('-v', '--version'):
+            print 'AWS VPC Viewer Version: ' + VERSION
+            sys.exit()
+        elif op in ('-o', '--outfile'):  
+            OUTFILE = value
+        elif op in ('-t', '--tree'):
+            isMap = False
+        elif op in ('-m', '--map'):
+            isMap = True
+            
+            
     
-if __name__ == '__main__':
     getInstances()
     getNetworks()
-    getVpcMap()
-    getInstancesTree()
+    
+    if isMap is True :
+        getVpcMap()
+    else :
+        getInstancesTree()
+        
+    print 'writing the dot data to a file ... '
+    with open(BASE_DIR+'/AWS_VPC.dot','w') as _file:
+        _file.write(aws.to_string())
+    
+    print 'drawing a png refer to the dot data ... '
+    if OUTFILE == '' :
+        aws.write_png("graph/VpcTopologyMap.png")
+    else :
+        aws.write_png(OUTFILE)
+         
+
+    
+def usage():
+    
+    print '''Usage:
+    
+    bash painter.sh <subcommand> [options]
+
+Subcommands:
+    routes             Paint the topology about network route tables of aws vpc
+    subnets            Paint the topology about subnets of aws vpc
+    instances          paint the topology about all instances in aws vpc
+    
+Options:
+    -t, --tree         Output the result as a tree photo
+    -m, --map          Output the result as a map photo, 
+                       -m and -t cannot appear at the same time
+                       
+    -o file, --outfile=file  Write output to 'file'      
+    -h, --help         Show this message
+    -v, --version      Print the name and version
+    '''
+
+
+if __name__ == '__main__':
+    funcFork()
 
