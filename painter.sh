@@ -6,6 +6,7 @@
 # @Description: This script can help you check the vpc network topology on AWS
 #
 # Environment Variables
+
 BASE_DIR=$(pwd)
 VPC_DIR=$BASE_DIR/vpc
 JSON_DIR=$BASE_DIR/json
@@ -27,16 +28,17 @@ for region in 'ap-northeast-1' 'ap-southeast-1'; do
     aws ec2 describe-availability-zones --region $region > ${VPC_DIR}/availablity_zones_${region}.json
 done
 
-echo "Step 2:Transforming svg files into png files, please wait..."
-if [[ -d $ICON_DIR ]]; then
-    /bin/ls $ICON_DIR/*.svg | while read svg_file
-    do
-        png_file=`echo $svg_file | sed 's/\.svg/\.png/'`
-        inkscape -zT -e "$png_file" -f "$svg_file" > /dev/null
-    done
-fi
+#echo "Step 2:Transforming svg files into png files, please wait..."
+#if [[ -d $ICON_DIR ]]; then
+#    /bin/ls $ICON_DIR/*.svg | while read svg_file
+#    do
+#        png_file=`echo $svg_file | sed 's/\.svg/\.png/'`
+#        inkscape -zT -e "$png_file" -f "$svg_file" > /dev/null
+#    done
+#fi
 
-echo "Step 3:Generating dot documents from feed items, please wait..."
+echo "Step 2:Generating dot documents from feed items, please wait..."
+
 python $BASE_DIR/json2dot.py "$*"
 
 sleep 1
