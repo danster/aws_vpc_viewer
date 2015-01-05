@@ -38,7 +38,7 @@ def fileCheck(_file):
     except IOError as e:
         print "I/O error({0}): {1}".format(e.errno, e.strerror)
         sys.exit()
-    else:
+    finally:
         print "Unexpected error:", sys.exc_info()[0]
         f.close()
         sys.exit()

@@ -10,7 +10,8 @@
 .project
 .*project
 .classpath
-alias.sh
+!alias.sh
+reporter.sh
 
 ##################
 # tracked folders#
@@ -23,9 +24,7 @@ alias.sh
 #############################
 !.gitignore
 !README.md
-!reporter.sh
 !painter.sh
-!json2xlsx.py
 !json2dot.py
 
 
