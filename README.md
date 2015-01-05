@@ -8,7 +8,7 @@ these scripts (shell or python) is run on the EC2 instance of AWS.
 ------------------------------------
 
 Platform:  
-- Ubuntu Server 64bit 14.04 LTS
+- Ubuntu 64bit 14.04 LTS or MacOS 10.9
 
 Dependencies:  
 - python 2.7
@@ -33,10 +33,5 @@ Running
 
 ```
 $ cd /path/to/aws_vpc_viewer/  
-$ /bin/bash painter.sh # draws the network topology of your vpc on AWS into a png photo.  
-$ /bin/bash reporter.sh # formats the information of ec2, s3, elb, rds to Excel-Formatted reports.  
-
-
-> ./AWS_VPC.png is the network topology of your vpc on AWS   
-> ./*.xlsx are the Excel-Formatted reports
+$ /bin/bash painter.sh # draws the network topology of your vpc on AWS into png photoes.
 ```
