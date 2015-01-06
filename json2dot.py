@@ -202,7 +202,7 @@ def getVpcMap():
 
 def getInstancesTree():
     
-    global regions, instances, subnets, vpcs
+    global regions, instances, subnets, vpcs, aws
     
     DotAttrs = dict(color='black', fontsize='12', 
                     overlap='false', sep='+1,1', 
@@ -298,11 +298,11 @@ def getInstancesTree():
 
 def funcFork():
     
-    global OUTFILE, AWS_DOT
+    global OUTFILE, aws
     opts = list()
     
     try: 
-        opts, _args = getopt.getopt(sys.argv[1:], 'hi:o:v',['version','outfile='])
+        opts, _args = getopt.getopt(sys.argv[1:], 'htmi:o:v',['version','outfile='])
     except getopt.GetoptError:  
         usage()
     
