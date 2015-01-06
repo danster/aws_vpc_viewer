@@ -38,10 +38,6 @@ def fileCheck(_file):
     except IOError as e:
         print "I/O error({0}): {1}".format(e.errno, e.strerror)
         sys.exit()
-    finally:
-        print "Unexpected error:", sys.exc_info()[0]
-        f.close()
-        sys.exit()
 
 def getInstances():
     print 'generating instance list data ... '
@@ -328,7 +324,7 @@ def funcFork():
             isMap = True
             
             
-    
+
     getInstances()
     getNetworks()
     
@@ -346,7 +342,7 @@ def funcFork():
         aws.write_png("graph/VpcTopologyMap.png")
     else :
         aws.write_png(OUTFILE)
-         
+
 
     
 def usage():
