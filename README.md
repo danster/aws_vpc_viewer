@@ -31,7 +31,8 @@ If you want to analysis my code, some following knowledge are required :
 
 Running
 -----------------------------------
-
-    $ cd /path/to/aws_vpc_viewer/
+   
+    $ git clone https://danster@github.com:/danster/aws_vpc_viewer.git vpcgraph
+    $ cd /path/to/vpcgraph/
     $ /bin/bash painter.sh # draws the network topology of your vpc on AWS into png photoes.
 
