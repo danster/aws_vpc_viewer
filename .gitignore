@@ -7,11 +7,12 @@
 ##################
 *~
 *.pyc
+*bak
+*back
+*backup
 .project
 .*project
 .classpath
-!alias.sh
-reporter.sh
 
 ##################
 # tracked folders#
@@ -24,8 +25,12 @@ reporter.sh
 #############################
 !.gitignore
 !README.md
+!alias.sh
 !painter.sh
 !json2dot.py
+!json2dict.py
+!utils.py
+
 
 
 

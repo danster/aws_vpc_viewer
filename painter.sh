@@ -39,7 +39,7 @@ done
 
 echo "Step 2:Generating dot documents from feed items, please wait..."
 
-python $BASE_DIR/json2dot.py "$*"
+python $BASE_DIR/src/json2dot.py "$*"
 
 sleep 1
 
