@@ -34,5 +34,5 @@ Running
    
     $ git clone https://danster@github.com:/danster/aws_vpc_viewer.git vpcgraph
     $ cd /path/to/vpcgraph/
-    $ /bin/bash painter.sh # draws the network topology of your vpc on AWS into png photoes.
+    $ python json2dot.py --help 
 
