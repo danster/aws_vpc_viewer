@@ -23,8 +23,8 @@
 #############################
 !.gitignore
 !README.md
-!json2dot.py
-!json2dict.py
+!painter.py
+!pre_process.py
 
 
 

@@ -34,5 +34,5 @@ Running
    
     $ git clone https://danster@github.com:/danster/aws_vpc_viewer.git vpcgraph
     $ cd /path/to/vpcgraph/
-    $ python json2dot.py --help 
+    $ python painter.py --help 
 
