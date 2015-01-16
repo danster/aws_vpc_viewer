@@ -22,8 +22,7 @@ BASE_DIR = os.path.split(os.path.realpath(__file__))[0]
 VPC_DIR = os.path.join(BASE_DIR, "vpc")
 JSON_DIR = os.path.join(BASE_DIR, "json")
 ICONS_DIR = os.path.join(BASE_DIR, "icons")
-GRAPH_DIR = os.path.join(BASE_DIR, "graph")
-REGIONS = ['ap-southeast-1','ap-northeast-1']
+REGIONS = ['ap-southeast-1', 'ap-northeast-1']
 
 
 def file_check(_file):
@@ -163,7 +162,7 @@ def json2dot(json_type='instances', is_map=True):
     root = pydot.Node('AWS', label='', image=ICONS_DIR+os.sep+"Cloud AWS.png", **tree_node)
     aws.add_node(root)
 
-    for i in instances :
+    for i in instances:
         instance_id = string.replace(i['InstanceId'], '-', '_')
         label = 'EC2  '+instance_id+'\n'
         if 'PrivateIpAddress' in i:
@@ -173,16 +172,16 @@ def json2dot(json_type='instances', is_map=True):
 
         _attr = copy.deepcopy(tree_node)
         _attr.update(dict(height='3.2',))
-        instance = pydot.Node(instance_id, label=label,image=ICONS_DIR+os.sep+"EC2 Instance.png", **_attr)
+        instance = pydot.Node(instance_id, label=label, image=ICONS_DIR+os.sep+"EC2 Instance.png", **_attr)
         i['Node'] = instance
         aws.add_node(instance)
 
     isolated_instances = [it for it in instances if 'VpcId' not in it]
     instances = [it for it in instances if 'VpcId' in it]
 
-    for r in REGIONS :
+    for r in REGIONS:
         _region = string.replace(r, '-', '_')
-        label='Region \n'+_region
+        label = 'Region \n'+_region
         _attr = copy.deepcopy(tree_node)
         _attr.update(dict(height='2.2',))
         region = pydot.Node(label, label=label, image=ICONS_DIR+os.sep+"Clound Internet.png",
@@ -191,10 +190,11 @@ def json2dot(json_type='instances', is_map=True):
         aws.add_node(region)
         aws.add_edge(pydot.Edge(root, region, **tree_edge))
 
-        for z in zones :
-            if z['Region'] != r : continue
+        for z in zones:
+            if z['Region'] != r:
+                continue
             zone_name = string.replace(z['ZoneName'], '-', '_')
-            label='AvailablityZone \n'+zone_name
+            label = 'AvailablityZone \n'+zone_name
 
             _attr = copy.deepcopy(tree_node)
             _attr.update(dict(height='1', shape='box', labelloc='c'))
@@ -203,24 +203,25 @@ def json2dot(json_type='instances', is_map=True):
             aws.add_node(zone)
             aws.add_edge(pydot.Edge(region, zone, **tree_edge))
 
-            for i in isolated_instances :
-                if i['Placement']['AvailabilityZone'] == z['ZoneName'] :
+            for i in isolated_instances:
+                if i['Placement']['AvailabilityZone'] == z['ZoneName']:
                     aws.add_edge(pydot.Edge(zone, i['Node'], dir='none', color='black'))
 
-
-        for v in vpcs :
-            if v['Region'] != r : continue
+        for v in vpcs:
+            if v['Region'] != r:
+                continue
 
             vpc_id = string.replace(v['VpcId'], '-', '_')
             label = 'Default ' if v['IsDefault'] is True else ''
-            label += ' '+vpc_id+'\n'+ v['CidrBlock']
+            label += ' '+vpc_id+'\n'+v['CidrBlock']
             vpc = pydot.Node(label, label=label, image=ICONS_DIR+os.sep+"Cloud VPC.png", **tree_node)
 
             aws.add_node(vpc)
             aws.add_edge(pydot.Edge(region, vpc, **tree_edge))
 
-            for s in subnets :
-                if s['VpcId'] != v['VpcId'] : continue
+            for s in subnets:
+                if s['VpcId'] != v['VpcId']:
+                    continue
                 subnet_id = string.replace(s['SubnetId'], '-', '_')
                 label = subnet_id+'\n'+s['CidrBlock']+'\n'
 
@@ -231,7 +232,8 @@ def json2dot(json_type='instances', is_map=True):
                 aws.add_edge(pydot.Edge(vpc, subnet, **tree_edge))
 
                 for i in instances:
-                    if i['SubnetId'] != s['SubnetId'] : continue
+                    if i['SubnetId'] != s['SubnetId']:
+                        continue
                     aws.add_edge(pydot.Edge(subnet, i['Node'], **tree_edge))
 
     return aws
@@ -239,7 +241,7 @@ def json2dot(json_type='instances', is_map=True):
 
 def fetch_json_from_aws():
 
-    for path in (VPC_DIR, JSON_DIR, GRAPH_DIR):
+    for path in (VPC_DIR, JSON_DIR):
         shutil.rmtree(path) if os.path.exists(path) else os.mkdir(path, 0775)
 
     cmd = '''echo "Generating feed items for Amazon Resources, please wait..."
@@ -256,43 +258,34 @@ done'''
 
 
 def main():
-    out_file = ""
-    is_map = True
+    out_file = 'VpcTopology.png'
 
     parser = argparse.ArgumentParser()
     parser.add_argument("command", type=str, choices=['gateway', 'routes', 'subnets', 'instances', 'elb', 'acl'],
                         default='instances', help="choose an aws service to be printed the topology image")
     parser.add_argument('-v', "--version", help="print the software's version", action="store_true")
-    parser.add_argument('-o', "--outfile", type=str, help="write output to outfile")
+    parser.add_argument('-o', "--outfile", type=str, help="write output to outfile, default is VpcTopology.png")
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-m', "--map", help="output the result as a map photo, which is default", action="store_true")
     group.add_argument('-t', "--tree", help="output the result as a tree photo", action="store_true")
-
     args = parser.parse_args()
 
     if args.version:
         print 'AWS VPC Viewer Version: ' + VERSION
         sys.exit()
     if args.outfile:
-        out_file += args.outfile
-    if args.tree:
-        is_map = False
-    if args.map:
-        is_map = True
+        out_file = ''+args.outfile
 
-    # fetch_json_from_aws()
-    aws = json2dot(args.command, is_map)
+    fetch_json_from_aws()
+    aws = json2dot(args.command, args.map is True)
 
     print 'drawing a png refer to the dot data ... '
-    if out_file == '' :
-        aws.write("graph/VpcTopology.png",format='png')
-    else :
-        aws.write(out_file, format='png')
+    aws.write(out_file, format='png')
 
     print '''Now, some folders were created when painting the vpc.
 vpc/ : the json-formatted files contain info about AWS VPC which fetched AWS through the AWS command line interface.
 json/ : the json-formatted files contain processed info from the vpc folder.
-graph/ : the png-formatted photos generated by pydot through data about AWS VPC.'''
+'''+out_file+''' : the png-formatted photo generated by pydot through data about AWS VPC.'''
 
     name = raw_input("Do you want to clean up history files? [y/n]:")
     if name in ('y', 'Y', 'yes'):
@@ -301,4 +294,3 @@ graph/ : the png-formatted photos generated by pydot through data about AWS VPC.
 
 if __name__ == '__main__':
     main()
-
