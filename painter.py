@@ -276,8 +276,14 @@ def main():
     if args.outfile:
         out_file = ''+args.outfile
 
+    isMap = False
+    if args.map:
+        isMap = True
+    if args.tree:
+        isMap = False
+
     fetch_json_from_aws()
-    aws = json2dot(args.command, args.map is True)
+    aws = json2dot(args.command, isMap)
 
     print 'drawing a png refer to the dot data ... '
     aws.write(out_file, format='png')
